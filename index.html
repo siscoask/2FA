@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2FA Security Quest</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #1e40af 100%);
+            min-height: 100vh;
+            padding: 15px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, #fef08a22 0%, transparent 50%);
+            animation: float 20s ease-in-out infinite alternate;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-20px); }
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            animation: slideUp 0.8s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #facc15 0%, #3b82f6 50%, #06b6d4 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -50%;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 12px;
+            font-weight: 800;
+            background: linear-gradient(45deg, #fff, #dbeafe);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            position: relative;
+            z-index: 1;
+            line-height: 1.2;
+        }
+
+        .header p {
+            opacity: 0.95;
+            font-size: 1.1em;
+            font-weight: 300;
+            position: relative;
+            z-index: 1;
+            line-height: 1.5;
+        }
+
+        .content {
+            padding: 40px 20px;
+            color: #e2e8f0;
+        }
+
+        .section-card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        }
+
+        .section-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .section-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #facc15, #3b82f6, #06b6d4);
+        }
+
+        .section-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .section-card h2 {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-icon {
+            color: #facc15;
+            font-size: 1.2em;
+        }
+
+        .text-lg {
+            font-size: 1.1em;
+            line-height: 1.7;
+            margin-bottom: 15px;
+        }
+
+        .text-base {
+            font-size: 0.95em;
+            line-height: 1.6;
+            margin-bottom: 10px;
+            color: #cbd5e1;
+        }
+
+        .highlight {
+            background: linear-gradient(90deg, #facc15, #06b6d4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: bold;
+        }
+
+        ul, ol {
+            padding-left: 0;
+            margin: 20px 0;
+        }
+
+        ul li {
+            margin-bottom: 12px;
+            padding-left: 30px;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        ul li::before {
+            content: '\f058';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: #22c55e;
+            position: absolute;
+            left: 0;
+            font-size: 1.2em;
+        }
+
+        ol {
+            counter-reset: list-counter;
+        }
+
+        ol li {
+            margin-bottom: 12px;
+            padding-left: 40px;
+            position: relative;
+            line-height: 1.6;
+            counter-increment: list-counter;
+        }
+
+        ol li::before {
+            content: counter(list-counter);
+            position: absolute;
+            left: 0;
+            background: linear-gradient(45deg, #facc15, #3b82f6);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .quiz-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        }
+
+        .quiz-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .quiz-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .options {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .option {
+            background: linear-gradient(45deg, #1e40af, #3b82f6);
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: all 0.5s;
+        }
+
+        .option:hover::before {
+            left: 100%;
+        }
+
+        .option:hover {
+            background: linear-gradient(45deg, #f97316, #facc15);
+            transform: translateX(5px);
+        }
+
+        .option.selected {
+            background: linear-gradient(45deg, #22c55e, #86efac);
+            color: white;
+            transform: translateX(5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .check-btn {
+            background: linear-gradient(45deg, #3b82f6, #06b6d4);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin-top: 25px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            display: block;
+            margin-left: auto;
+        }
+
+        .check-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: all 0.5s;
+        }
+
+        .check-btn:hover::before {
+            left: 100%;
+        }
+
+        .check-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(59, 130, 246, 0.3);
+        }
+
+        .result-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 25px;
+            display: none;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        }
+
+        .result-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .result-section::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #facc15, #3b82f6, #06b6d4);
+        }
+
+        .result-section strong {
+            font-size: 1.5em;
+            font-weight: 700;
+            background: linear-gradient(45deg, #facc15, #3b82f6);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .answers-section {
+            display: none;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .answer-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border-left: 4px solid #facc15;
+        }
+
+        .answer-icon {
+            color: #22c55e;
+            font-size: 1.2em;
+            margin-top: 2px;
+        }
+
+        .answer-text {
+            flex: 1;
+            color: #e2e8f0;
+        }
+
+        .answer-text strong {
+            color: #facc15;
+        }
+
+        .fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(45deg, #facc15, #3b82f6);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 32px rgba(59, 130, 246, 0.4);
+        }
+
+        @media (hover: none) {
+            .section-card:hover, .option:hover, .check-btn:hover, .fab:hover {
+                transform: none;
+                box-shadow: none;
+                background: inherit;
+            }
+            .check-btn::before, .option::before {
+                display: none;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            body::before, .section-card, .option, .check-btn, .fab, .quiz-section, .result-section {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            .header p {
+                font-size: 1em;
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                border-radius: 12px;
+            }
+            .header {
+                padding: 30px 15px;
+            }
+            .header h1 {
+                font-size: 1.8em;
+            }
+            .header p {
+                font-size: 0.95em;
+            }
+            .content {
+                padding: 30px 15px;
+            }
+            .section-card {
+                padding: 25px;
+                margin-bottom: 30px;
+            }
+            .section-card h2 {
+                font-size: 1.5em;
+            }
+            .text-lg {
+                font-size: 1em;
+            }
+            .option {
+                padding: 12px;
+                font-size: 0.95em;
+            }
+            .check-btn {
+                padding: 12px 25px;
+                font-size: 0.9em;
+            }
+            .fab {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+                bottom: 15px;
+                right: 15px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .header h1 {
+                font-size: 1.6em;
+            }
+            .header p {
+                font-size: 0.9em;
+            }
+            .content {
+                padding: 25px 10px;
+            }
+            .section-card h2 {
+                font-size: 1.3em;
+            }
+            .option {
+                font-size: 0.9em;
+                padding: 10px;
+            }
+            .answer-item {
+                flex-direction: column;
+                gap: 10px;
+                padding: 12px;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(45deg, #facc15, #3b82f6);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(45deg, #f97316, #06b6d4);
+        }
+
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-shield-alt"></i> 2FA Security Quest</h1>
+            <p>Master Two-Factor Authentication with this electrifying interactive challenge!</p>
+        </div>
+
+        <div class="content">
+            <div class="section-card">
+                <h2><i class="fas fa-circle-info section-icon"></i>What is 2FA?</h2>
+                <p class="text-lg">Two-Factor Authentication (2FA) is your <span class="highlight">digital fortress</span>, requiring two forms of verification: a password and a second factor, like a code from an app (Google Authenticator, Authy) or SMS. It’s like a lock that needs both a key and a fingerprint.</p>
+                <p class="text-base"><strong>Why It’s Essential:</strong> 2FA makes your accounts virtually <span class="highlight">unhackable</span>, even if your password is compromised.</p>
+            </div>
+
+            <div class="section-card">
+                <h2><i class="fas fa-exclamation-circle section-icon"></i>Why 2FA Matters</h2>
+                <p class="text-lg">2FA stops <span class="highlight">99.9% of account takeovers</span> by adding an extra layer of security. It’s your best defense against phishing, credential stuffing, and brute-force attacks.</p>
+                <ul>
+                    <li class="text-base">Accounts with 2FA are <span class="highlight">100x less likely</span> to be hacked than those with just passwords.</li>
+                    <li class="text-base">Without 2FA, a single leaked password can lead to multiple <span class="highlight">compromised accounts</span>.</li>
+                </ul>
+            </div>
+
+            <div class="section-card" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(6, 182, 212, 0.1)); border: 1px solid rgba(59, 130, 246, 0.2);">
+                <h2><i class="fas fa-book-open section-icon"></i>Case Study: 2019 Dropbox Breach</h2>
+                <p class="text-lg">In 2019, hackers launched a credential stuffing attack on Dropbox, exploiting passwords stolen from other sites. 2FA protected millions of accounts, preventing a <span class="highlight">massive breach</span>.</p>
+                <ul>
+                    <li class="text-base"><strong>Impact:</strong> Dropbox’s push for 2FA post-breach set a standard, with <span class="highlight">70% of users</span> enabling it within a year.</li>
+                    <li class="text-base"><strong>Lesson:</strong> 2FA is your safety net against reused credentials from <span class="highlight">data leaks</span>.</li>
+                </ul>
+            </div>
+
+            <div class="section-card">
+                <h2><i class="fas fa-cogs section-icon"></i>How to Activate 2FA</h2>
+                <p class="text-lg">Secure your accounts with these top authenticator apps:</p>
+                <ul>
+                    <li class="text-lg"><strong>Google Authenticator</strong>: Free, reliable, and widely supported.</li>
+                    <li class="text-lg"><strong>Authy</strong>: Syncs across devices with encrypted backups.</li>
+                    <li class="text-lg"><strong>Microsoft Authenticator</strong>: Ideal for Microsoft services.</li>
+                    <li class="text-lg"><strong>YubiKey</strong>: Hardware-based for ultimate protection.</li>
+                    <li class="text-lg"><strong>Duo Mobile</strong>: Enterprise-grade with a sleek interface.</li>
+                </ul>
+                <p class="text-lg mt-4">Steps to enable 2FA:</p>
+                <ol>
+                    <li class="text-lg">Go to your account’s security settings.</li>
+                    <li class="text-lg">Enable 2FA, choosing an app-based method for best security.</li>
+                    <li class="text-lg">Download an authenticator app if needed.</li>
+                    <li class="text-lg">Scan the QR code provided by the service.</li>
+                    <li class="text-lg">Save backup codes in a secure vault (e.g., password manager).</li>
+                    <li class="text-lg">Test by logging out and back in with 2FA.</li>
+                </ol>
+                <p class="text-base mt-3"><strong>Pro Tip:</strong> Avoid SMS-based 2FA—it’s vulnerable to <span class="highlight">SIM-swapping</span> attacks.</p>
+            </div>
+
+            <div class="section-card" style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(134, 239, 172, 0.1)); border: 1px solid rgba(34, 197, 94, 0.2);">
+                <h2><i class="fas fa-tasks section-icon"></i>Activity: Secure Your Accounts</h2>
+                <p class="text-lg">Pick a critical account (email, banking, X, etc.) and lock it down:</p>
+                <ol>
+                    <li class="text-lg">Log in and find Security or Privacy settings.</li>
+                    <li class="text-lg">Enable “Two-Factor Authentication” or “Multi-Factor Authentication.”</li>
+                    <li class="text-lg">Choose an app-based method for top security.</li>
+                    <li class="text-lg">Scan the QR code and save the code.</li>
+                    <li class="text-lg">Store backup codes in a password manager.</li>
+                    <li class="text-lg">Test by logging out and logging back in.</li>
+                </ol>
+                <ul>
+                    <li class="text-lg"><strong>Challenge:</strong> Secure <span class="highlight">five accounts</span> with 2FA this week to become a cybersecurity champ!</li>
+                    <li class="text-base"><strong>Bonus:</strong> Use a password manager like 1Password or Bitwarden for backup codes.</li>
+                </ul>
+            </div>
+
+            <div class="section-card" style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(250, 204, 21, 0.1)); border: 1px solid rgba(249, 115, 22, 0.2);">
+                <h2><i class="fas fa-exclamation-triangle section-icon"></i>2FA Myths Busted</h2>
+                <ul>
+                    <li class="text-lg"><strong class="highlight">Myth:</strong> 2FA is too complicated. <em class="text-base">Truth:</em> Most apps make setup a breeze in under <span class="highlight">2 minutes</span>.</li>
+                    <li class="text-lg"><strong class="highlight">Myth:</strong> SMS 2FA is just as secure as apps. <em class="text-base">Truth:</em> SMS is weaker due to <span class="highlight">SIM-swapping</span> risks.</li>
+                    <li class="text-lg"><strong class="highlight">Myth:</strong> 2FA slows you down. <em class="text-base">Truth:</em> Modern apps like Duo offer instant <span class="highlight">push notifications</span>.</li>
+                    <li class="text-lg"><strong class="highlight">Myth:</strong> Only techies need 2FA. <em class="text-base">Truth:</em> Everyone’s a target—2FA is a must for all.</li>
+                </ul>
+            </div>
+
+            <div class="section-card">
+                <h2><i class="fas fa-question-circle section-icon"></i>Test Your 2FA Knowledge</h2>
+                <p class="text-lg mb-4">Show off your 2FA skills with this quiz. Select an answer for each question, then click <span class="highlight">Check My Score</span>!</p>
+
+                <div class="quiz-section">
+                    <p class="text-lg font-semibold mb-3"><i class="fas fa-circle-question section-icon"></i> Q1: What is the primary purpose of 2FA?</p>
+                    <ul class="options">
+                        <li class="option" onclick="selectOption(this, 0)">Adds a second verification step</li>
+                        <li class="option" onclick="selectOption(this, 0)">Replaces your password</li>
+                        <li class="option" onclick="selectOption(this, 0)">Encrypts your emails</li>
+                    </ul>
+                </div>
+
+                <div class="quiz-section">
+                    <p class="text-lg font-semibold mb-3"><i class="fas fa-circle-question section-icon"></i> Q2: Which 2FA method is most secure?</p>
+                    <ul class="options">
+                        <li class="option" onclick="selectOption(this, 1)">SMS code</li>
+                        <li class="option" onclick="selectOption(this, 1)">Authenticator app</li>
+                        <li class="option" onclick="selectOption(this, 1)">Email link</li>
+                    </ul>
+                </div>
+
+                <div class="quiz-section">
+                    <p class="text-lg font-semibold mb-3"><i class="fas fa-circle-question section-icon"></i> Q3: What did 2FA prevent in the 2019 Dropbox breach?</p>
+                    <ul class="options">
+                        <li class="option" onclick="selectOption(this, 2)">Server shutdown</li>
+                        <li class="option" onclick="selectOption(this, 2)">Unauthorized access</li>
+                        <li class="option" onclick="selectOption(this, 2)">Data encryption</li>
+                    </ul>
+                </div>
+
+                <div class="quiz-section">
+                    <p class="text-lg font-semibold mb-3"><i class="fas fa-circle-question section-icon"></i> Q4: Why is SMS-based 2FA less secure?</p>
+                    <ul class="options">
+                        <li class="option" onclick="selectOption(this, 3)">It’s too slow</li>
+                        <li class="option" onclick="selectOption(this, 3)">Vulnerable to SIM-swapping</li>
+                        <li class="option" onclick="selectOption(this, 3)">It costs money</li>
+                    </ul>
+                </div>
+
+                <div class="quiz-section">
+                    <p class="text-lg font-semibold mb-3"><i class="fas fa-circle-question section-icon"></i> Q5: Which account should you prioritize for 2FA?</p>
+                    <ul class="options">
+                        <li class="option" onclick="selectOption(this, 4)">Your gaming account</li>
+                        <li class="option" onclick="selectOption(this, 4)">Your primary email</li>
+                        <li class="option" onclick="selectOption(this, 4)">Your music streaming account</li>
+                    </ul>
+                </div>
+
+                <div class="quiz-section">
+                    <p class="text-lg font-semibold mb-3"><i class="fas fa-circle-question section-icon"></i> Q6: Which is a common 2FA myth?</p>
+                    <ul class="options">
+                        <li class="option" onclick="selectOption(this, 5)">2FA is only for tech experts</li>
+                        <li class="option" onclick="selectOption(this, 5)">2FA works with any app</li>
+                        <li class="option" onclick="selectOption(this, 5)">2FA is optional for email</li>
+                    </ul>
+                </div>
+
+                <button class="check-btn" onclick="checkAnswers()"><i class="fas fa-check-double"></i> Check My Score</button>
+
+                <div class="result-section" id="resultSection">
+                    <strong id="resultScore"></strong>
+                    <p id="resultFeedback"></p>
+                    <div class="answers-section" id="answersSection">
+                        <h3 style="color: #facc15; margin-bottom: 15px; font-size: 1.3em;">Correct Answers:</h3>
+                        <div class="answer-item">
+                            <i class="fas fa-check answer-icon"></i>
+                            <div class="answer-text"><strong>Q1:</strong> Adds a second verification step</div>
+                        </div>
+                        <div class="answer-item">
+                            <i class="fas fa-check answer-icon"></i>
+                            <div class="answer-text"><strong>Q2:</strong> Authenticator app</div>
+                        </div>
+                        <div class="answer-item">
+                            <i class="fas fa-check answer-icon"></i>
+                            <div class="answer-text"><strong>Q3:</strong> Unauthorized access</div>
+                        </div>
+                        <div class="answer-item">
+                            <i class="fas fa-check answer-icon"></i>
+                            <div class="answer-text"><strong>Q4:</strong> Vulnerable to SIM-swapping</div>
+                        </div>
+                        <div class="answer-item">
+                            <i class="fas fa-check answer-icon"></i>
+                            <div class="answer-text"><strong>Q5:</strong> Your primary email</div>
+                        </div>
+                        <div class="answer-item">
+                            <i class="fas fa-check answer-icon"></i>
+                            <div class="answer-text"><strong>Q6:</strong> 2FA is only for tech experts</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(6, 182, 212, 0.1)); border: 1px solid rgba(59, 130, 246, 0.2);">
+                <h2><i class="fas fa-lightbulb section-icon"></i>Elite 2FA Strategies</h2>
+                <ul>
+                    <li class="text-lg">Store backup codes in a password manager like <span class="highlight">1Password</span> or <span class="highlight">Bitwarden</span>.</li>
+                    <li class="text-lg">Enable 2FA on all critical accounts: email, banking, <span class="highlight">X</span>, and work.</li>
+                    <li class="text-lg">Use hardware keys like <span class="highlight">YubiKey</span> for high-security accounts.</li>
+                    <li class="text-lg">Check 2FA support at <a href="https://twofactorauth.org" class="text-blue-400 hover:underline">twofactorauth.org</a>.</li>
+                    <li class="text-lg">Opt for push-based 2FA (e.g., <span class="highlight">Duo</span>) for fast, secure logins.</li>
+                    <li class="text-lg">Review 2FA settings biweekly to ensure they’re active.</li>
+                </ul>
+            </div>
+
+            <div class="section-card" style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(250, 204, 21, 0.1)); border: 1px solid rgba(249, 115, 22, 0.2);">
+                <h2><i class="fas fa-globe section-icon"></i>2FA in the Real World</h2>
+                <p class="text-lg">2FA is a global standard, mandated by tech giants like <span class="highlight">Google</span> and <span class="highlight">Microsoft</span> for employee accounts to protect sensitive data.</p>
+                <ul>
+                    <li class="text-lg"><strong>Industry Insight:</strong> Over <span class="highlight">80% of data breaches</span> could be prevented with 2FA, per recent cybersecurity reports.</li>
+                    <li class="text-lg"><strong>Global Trend:</strong> Governments and organizations are pushing 2FA to combat skyrocketing <span class="highlight">cybercrime rates</span>.</li>
+                    <li class="text-base"><strong>Fun Fact:</strong> In 2024, over <span class="highlight">50% of internet users</span> worldwide adopted 2FA, up from 20% in 2020.</li>
+                </ul>
+            </div>
+
+            <div class="section-card" style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(134, 239, 172, 0.1)); border: 1px solid rgba(34, 197, 94, 0.2);">
+                <h2><i class="fas fa-shield-alt section-icon"></i>Advanced 2FA Insights</h2>
+                <ul>
+                    <li class="text-lg"><strong class="highlight">Apps vs. SMS:</strong> Authenticator apps generate codes locally, safe from network hacks. SMS is weaker due to <span class="highlight">SIM-swapping</span> risks.</li>
+                    <li class="text-lg"><strong class="highlight">Future of 2FA:</strong> WebAuthn and passkeys are paving the way for <span class="highlight">biometric</span> and device-based authentication.</li>
+                    <li class="text-lg"><strong class="highlight">Common Mistake:</strong> Don’t store backup codes in plain text or on your phone—use a <span class="highlight">secure vault</span>.</li>
+                    <li class="text-lg"><strong class="highlight">Next-Level Tip:</strong> Combine 2FA with unique, strong passwords for <span class="highlight">ironclad security</span>.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <button class="fab" onclick="scrollToTop()" aria-label="Scroll to top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script>
+        let answers = [0, 1, 1, 1, 1, 0]; // Correct indices for Q1, Q2, Q3, Q4, Q5, Q6
+        let selections = [-1, -1, -1, -1, -1, -1];
+
+        function selectOption(element, qIndex) {
+            const options = element.parentNode.children;
+            for (let i = 0; i < options.length; i++) {
+                options[i].classList.remove('selected');
+            }
+            element.classList.add('selected');
+            selections[qIndex] = Array.from(options).indexOf(element);
+        }
+
+        function checkAnswers() {
+            let score = 0;
+            let feedback = '';
+            for (let i = 0; i < answers.length; i++) {
+                if (selections[i] === answers[i]) {
+                    score++;
+                }
+            }
+            const resultSection = document.getElementById('resultSection');
+            const resultScore = document.getElementById('resultScore');
+            const resultFeedback = document.getElementById('resultFeedback');
+            const answersSection = document.getElementById('answersSection');
+            if (score === 6) {
+                feedback = 'You’re a <span class="highlight">2FA legend</span>! Secure every account and dominate cyberspace!';
+                resultSection.style.background = 'linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(134, 239, 172, 0.2))';
+                resultSection.style.border = '1px solid rgba(34, 197, 94, 0.3)';
+            } else if (score >= 5) {
+                feedback = 'Nailed it! You’re <span class="highlight">almost unstoppable</span>—lock down those accounts!';
+                resultSection.style.background = 'linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(134, 239, 172, 0.2))';
+                resultSection.style.border = '1px solid rgba(34, 197, 94, 0.3)';
+            } else if (score >= 3) {
+                feedback = 'Great effort! Review the 2FA tips and aim for a <span class="highlight">perfect score</span>.';
+                resultSection.style.background = 'linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(250, 204, 21, 0.2))';
+                resultSection.style.border = '1px solid rgba(249, 115, 22, 0.3)';
+            } else {
+                feedback = 'No stress! Study the 2FA sections and <span class="highlight">crush the activity</span> to level up.';
+                resultSection.style.background = 'linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(255, 0, 110, 0.2))';
+                resultSection.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+            }
+            resultScore.innerHTML = `Your Score: ${score}/6`;
+            resultFeedback.innerHTML = feedback;
+            resultSection.style.display = 'block';
+            answersSection.style.display = 'block';
+            resultSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        window.addEventListener('scroll', () => {
+            const fab = document.querySelector('.fab');
+            fab.style.opacity = window.scrollY > 300 ? '1' : '0';
+            fab.style.pointerEvents = window.scrollY > 300 ? 'all' : 'none';
+        });
+
+        // Scroll animation with Intersection Observer
+        document.addEventListener('DOMContentLoaded', () => {
+            const sections = document.querySelectorAll('.section-card, .quiz-section, .result-section');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, {
+                threshold: 0.1,
+                rootMargin: '50px'
+            });
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+        });
+    </script>
+</body>
+</html>
